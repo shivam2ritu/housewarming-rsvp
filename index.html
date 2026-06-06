@@ -172,43 +172,43 @@ select.input{cursor:pointer;-webkit-appearance:none;appearance:none;background-i
 
   // Blobs
   var blobs = [
-    { x: 0.2, y: 0.3, r: 0.25, speed: 0.4, phase: 0, color: 'rgba(252, 200, 180, 0.45)' },
-    { x: 0.7, y: 0.2, r: 0.3, speed: 0.3, phase: 1, color: 'rgba(220, 180, 220, 0.35)' },
-    { x: 0.5, y: 0.7, r: 0.28, speed: 0.35, phase: 2, color: 'rgba(180, 220, 195, 0.4)' },
-    { x: 0.8, y: 0.6, r: 0.22, speed: 0.45, phase: 3, color: 'rgba(255, 220, 180, 0.4)' },
-    { x: 0.3, y: 0.8, r: 0.26, speed: 0.38, phase: 4, color: 'rgba(200, 190, 240, 0.35)' },
-    { x: 0.1, y: 0.5, r: 0.2, speed: 0.5, phase: 5, color: 'rgba(255, 210, 200, 0.4)' },
-    { x: 0.6, y: 0.4, r: 0.24, speed: 0.32, phase: 6, color: 'rgba(190, 230, 210, 0.35)' },
+    { x: 0.2, y: 0.3, r: 0.3, speed: 0.7, phase: 0, color: [240, 140, 120] },
+    { x: 0.75, y: 0.2, r: 0.35, speed: 0.5, phase: 1.2, color: [180, 140, 220] },
+    { x: 0.5, y: 0.7, r: 0.32, speed: 0.6, phase: 2.4, color: [130, 200, 160] },
+    { x: 0.85, y: 0.65, r: 0.28, speed: 0.8, phase: 3.6, color: [250, 190, 120] },
+    { x: 0.15, y: 0.75, r: 0.3, speed: 0.55, phase: 4.8, color: [170, 160, 240] },
+    { x: 0.4, y: 0.15, r: 0.26, speed: 0.9, phase: 6.0, color: [240, 170, 170] },
   ];
 
   var t = 0;
 
   function draw() {
-    t += 0.008; // Speed of animation
+    t += 0.012; // Faster animation
 
     var w = canvas.width;
     var h = canvas.height;
 
     // Warm cream background
-    ctx.fillStyle = '#fdf8f4';
+    ctx.fillStyle = '#fdf6f0';
     ctx.fillRect(0, 0, w, h);
 
-    // Draw each blob
+    // Draw each blob with visible movement
     for (var i = 0; i < blobs.length; i++) {
       var b = blobs[i];
 
-      // Position oscillates
-      var bx = (b.x + Math.sin(t * b.speed + b.phase) * 0.12) * w;
-      var by = (b.y + Math.cos(t * b.speed * 0.8 + b.phase + 1) * 0.1) * h;
+      // Larger movement range
+      var bx = (b.x + Math.sin(t * b.speed + b.phase) * 0.18 + Math.cos(t * 0.3 + i) * 0.05) * w;
+      var by = (b.y + Math.cos(t * b.speed * 0.7 + b.phase + 1) * 0.15 + Math.sin(t * 0.4 + i * 2) * 0.05) * h;
 
-      // Radius pulses
-      var br = (b.r + Math.sin(t * 0.5 + b.phase * 2) * 0.03) * Math.min(w, h);
+      // More visible pulsing
+      var br = (b.r + Math.sin(t * 0.8 + b.phase * 2) * 0.05) * Math.min(w, h);
 
-      // Draw soft radial gradient blob
+      // Draw blob with higher opacity
       var grad = ctx.createRadialGradient(bx, by, 0, bx, by, br);
-      grad.addColorStop(0, b.color);
-      grad.addColorStop(0.6, b.color.replace(/[\d.]+\)$/, '0.15)'));
-      grad.addColorStop(1, b.color.replace(/[\d.]+\)$/, '0)'));
+      grad.addColorStop(0, 'rgba(' + b.color[0] + ',' + b.color[1] + ',' + b.color[2] + ', 0.6)');
+      grad.addColorStop(0.4, 'rgba(' + b.color[0] + ',' + b.color[1] + ',' + b.color[2] + ', 0.3)');
+      grad.addColorStop(0.7, 'rgba(' + b.color[0] + ',' + b.color[1] + ',' + b.color[2] + ', 0.1)');
+      grad.addColorStop(1, 'rgba(' + b.color[0] + ',' + b.color[1] + ',' + b.color[2] + ', 0)');
 
       ctx.beginPath();
       ctx.arc(bx, by, br, 0, Math.PI * 2);
