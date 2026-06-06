@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Housewarming RSVP</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{margin:0;padding:0;min-height:100vh;overflow-x:hidden}
+body{font-family:'Outfit',sans-serif;color:#1e293b;-webkit-font-smoothing:antialiased}
+
+#canvas-bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0}
+
+.progress-bar{position:fixed;top:0;left:0;right:0;z-index:10;padding:14px 20px 10px;background:rgba(255,255,255,0.65);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,0,0,0.04)}
+.progress-inner{max-width:500px;margin:0 auto}
+.progress-top{display:flex;justify-content:space-between;margin-bottom:6px;font-size:12px;font-weight:600;color:#64748b}
+.progress-track{height:5px;background:rgba(0,0,0,0.06);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#c06848,#e8a87c);border-radius:3px;width:33%;transition:width 0.5s ease}
+
+.page{position:relative;z-index:2;max-width:500px;margin:0 auto;padding:80px 18px 40px;min-height:100vh}
+
+.hero{text-align:center;padding:40px 24px;margin-bottom:24px;background:rgba(55,35,28,0.78);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-radius:24px;border:1px solid rgba(255,255,255,0.06);color:#fff}
+.hero-tag{font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:14px}
+.hero h1{font-family:'Fraunces',serif;font-size:30px;font-weight:700;margin-bottom:8px}
+.hero .sub{font-size:14px;color:rgba(255,255,255,0.6);margin-bottom:18px}
+.pills{display:flex;flex-wrap:wrap;gap:7px;justify-content:center}
+.pill{padding:6px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:99px;font-size:12px;color:rgba(255,255,255,0.8)}
+
+.card{background:rgba(255,255,255,0.7);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,0.5);border-radius:22px;padding:28px 22px;box-shadow:0 8px 32px rgba(0,0,0,0.04)}
+
+.step{display:none;animation:fadeUp .35s ease}.step.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+.q{font-family:'Fraunces',serif;font-size:22px;font-weight:700;margin-bottom:4px}
+.hint{font-size:13px;color:#64748b;margin-bottom:20px}
+
+.input{width:100%;padding:15px 16px;background:rgba(248,245,242,0.8);border:2px solid rgba(0,0,0,0.04);border-radius:12px;font-size:16px;font-family:'Outfit',sans-serif;font-weight:500;color:#1e293b;transition:.2s}
+.input:focus{outline:none;border-color:#c06848;box-shadow:0 0 0 3px rgba(192,104,72,0.1)}
+.input::placeholder{color:#94a3b8;font-weight:400}
+select.input{cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='2' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+
+.att-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.att-card{position:relative}
+.att-card input{position:absolute;opacity:0;pointer-events:none}
+.att-card label{display:flex;flex-direction:column;align-items:center;gap:6px;padding:24px 14px;background:rgba(248,245,242,0.8);border:2px solid rgba(0,0,0,0.04);border-radius:14px;cursor:pointer;transition:.2s}
+.att-card label .icon{font-size:32px}
+.att-card label .txt{font-size:13px;font-weight:600}
+.att-card label .sub{font-size:11px;color:#94a3b8}
+.att-card input:checked+label{border-color:#c06848;background:rgba(192,104,72,0.08);box-shadow:0 0 0 3px rgba(192,104,72,0.1)}
+.att-card input:checked+label .txt{color:#c06848}
+
+.guest{background:rgba(248,245,242,0.7);border:2px solid rgba(0,0,0,0.04);border-radius:14px;padding:16px;margin-bottom:12px;transition:.25s}
+.guest.done{border-color:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,0.1)}
+.guest-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.guest-id{display:flex;align-items:center;gap:7px}
+.guest-num{width:24px;height:24px;background:#c06848;color:#fff;border-radius:7px;display:grid;place-items:center;font-size:11px;font-weight:700}
+.guest-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#94a3b8}
+.child-sw{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:#64748b}
+.sw{position:relative;width:38px;height:22px;cursor:pointer}
+.sw input{opacity:0;width:0;height:0;position:absolute}
+.sw .rail{position:absolute;inset:0;background:rgba(0,0,0,0.1);border-radius:11px;transition:.25s}
+.sw .dot{position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.15);transition:.25s cubic-bezier(.4,0,.2,1)}
+.sw input:checked~.rail{background:#10b981}
+.sw input:checked~.dot{transform:translateX(16px)}
+
+.gname{width:100%;padding:11px 13px;background:rgba(255,255,255,0.8);border:1.5px solid rgba(0,0,0,0.05);border-radius:9px;font-size:14px;font-family:'Outfit',sans-serif;font-weight:500;color:#1e293b;transition:.2s}
+.gname:focus{outline:none;border-color:#c06848}
+.gname::placeholder{color:#94a3b8;font-weight:400}
+
+.pref{margin-top:10px}
+.pref-t{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#94a3b8;margin-bottom:6px}
+.pref-r{display:flex;flex-wrap:wrap;gap:5px}
+.chip{position:relative}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip label{display:inline-block;padding:8px 11px;background:rgba(255,255,255,0.7);border:1.5px solid rgba(0,0,0,0.05);border-radius:8px;font-size:11px;font-weight:500;color:#475569;cursor:pointer;transition:.2s}
+.chip input:checked+label{background:rgba(192,104,72,0.1);border-color:#c06848;color:#c06848;font-weight:600}
+.chip.drink input:checked+label{background:rgba(16,185,129,0.08);border-color:#10b981;color:#059669}
+
+.btn{width:100%;padding:15px;border:none;border-radius:12px;font-size:15px;font-weight:600;font-family:'Outfit',sans-serif;cursor:pointer;transition:.2s;margin-top:18px}
+.btn-go{background:#c06848;color:#fff;box-shadow:0 4px 12px rgba(192,104,72,0.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(192,104,72,0.3)}
+.btn-go:active{transform:translateY(0)}
+.btn-go:disabled{background:#cbd5e1;box-shadow:none;cursor:not-allowed;transform:none}
+.btn-back{background:transparent;color:#94a3b8;font-size:13px;margin-top:8px}
+.btn-back:hover{color:#475569}
+
+.decline{display:none;text-align:center;padding:14px;background:rgba(254,226,226,0.5);border-radius:10px;margin-top:12px;font-size:13px;color:#9ca3af}
+.count-chip{display:none;padding:7px 12px;background:rgba(16,185,129,0.08);border-radius:7px;font-size:11px;font-weight:600;color:#059669;margin:10px 0}
+
+.success{display:none;text-align:center;padding:60px 20px;animation:fadeUp .4s ease}
+.success .chk{width:70px;height:70px;background:rgba(16,185,129,0.1);border-radius:50%;display:grid;place-items:center;margin:0 auto 20px;animation:pop .4s cubic-bezier(.175,.885,.32,1.275) .2s both}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.success .chk svg{width:32px;height:32px;stroke:#10b981;stroke-width:3;fill:none}
+.success h2{font-family:'Fraunces',serif;font-size:26px;margin-bottom:8px}
+.success p{font-size:14px;color:#64748b;line-height:1.5}
+
+@media(max-width:500px){.page{padding:72px 14px 32px}.hero{padding:30px 18px}.hero h1{font-size:26px}.card{padding:22px 16px}}
+</style>
+</head>
+<body>
+
+<canvas id="canvas-bg"></canvas>
+
+<div class="progress-bar">
+  <div class="progress-inner">
+    <div class="progress-top"><span id="pl">Getting started</span><span id="ps">1 / 3</span></div>
+    <div class="progress-track"><div class="progress-fill" id="pf"></div></div>
+  </div>
+</div>
+
+<div class="page">
+  <div class="hero" id="hero">
+    <div class="hero-tag">You're Invited</div>
+    <h1>Housewarming Party</h1>
+    <p class="sub">Come celebrate our new home with us!</p>
+    <div class="pills">
+      <span class="pill">&#128197; Sat, June 13</span>
+      <span class="pill">&#9201; 5 PM onwards</span>
+      <span class="pill">&#128205; [Address]</span>
+    </div>
+  </div>
+
+  <div class="card" id="card">
+    <div class="step active" id="s1">
+      <div class="q">Hey! What's your name?</div>
+      <div class="hint">So we know who's RSVPing</div>
+      <input class="input" id="name" type="text" placeholder="Your full name" autofocus>
+      <button class="btn btn-go" id="n1" disabled>Continue</button>
+    </div>
+    <div class="step" id="s2">
+      <div class="q">Can you make it?</div>
+      <div class="hint">We'd love to see you there</div>
+      <div class="att-grid">
+        <div class="att-card"><input type="radio" id="ay" name="att" value="Yes"><label for="ay"><span class="icon">&#127881;</span><span class="txt">Yes!</span><span class="sub">Count me in</span></label></div>
+        <div class="att-card"><input type="radio" id="an" name="att" value="No"><label for="an"><span class="icon">&#128532;</span><span class="txt">Can't make it</span><span class="sub">Next time</span></label></div>
+      </div>
+      <div class="decline" id="dec">We'll miss you! Thanks for letting us know.</div>
+      <button class="btn btn-go" id="n2" disabled>Continue</button>
+      <button class="btn btn-back" id="b2">&larr; Back</button>
+    </div>
+    <div class="step" id="s3">
+      <div class="q">Who's coming?</div>
+      <div class="hint">Everyone attending, including you and children</div>
+      <select class="input" id="gc"><option value="">How many total?</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select>
+      <div class="count-chip" id="cc"></div>
+      <div id="gf"></div>
+      <button class="btn btn-go" id="sub" disabled>Submit RSVP</button>
+      <button class="btn btn-back" id="b3">&larr; Back</button>
+    </div>
+  </div>
+
+  <div class="success" id="done">
+    <div class="chk"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <h2>You're all set!</h2>
+    <p id="dt">Thank you! We look forward to celebrating with you.</p>
+  </div>
+</div>
+
+<script>
+// ============ ANIMATED BACKGROUND ============
+(function() {
+  var canvas = document.getElementById('canvas-bg');
+  var ctx = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // Blobs
+  var blobs = [
+    { x: 0.2, y: 0.3, r: 0.25, speed: 0.4, phase: 0, color: 'rgba(252, 200, 180, 0.45)' },
+    { x: 0.7, y: 0.2, r: 0.3, speed: 0.3, phase: 1, color: 'rgba(220, 180, 220, 0.35)' },
+    { x: 0.5, y: 0.7, r: 0.28, speed: 0.35, phase: 2, color: 'rgba(180, 220, 195, 0.4)' },
+    { x: 0.8, y: 0.6, r: 0.22, speed: 0.45, phase: 3, color: 'rgba(255, 220, 180, 0.4)' },
+    { x: 0.3, y: 0.8, r: 0.26, speed: 0.38, phase: 4, color: 'rgba(200, 190, 240, 0.35)' },
+    { x: 0.1, y: 0.5, r: 0.2, speed: 0.5, phase: 5, color: 'rgba(255, 210, 200, 0.4)' },
+    { x: 0.6, y: 0.4, r: 0.24, speed: 0.32, phase: 6, color: 'rgba(190, 230, 210, 0.35)' },
+  ];
+
+  var t = 0;
+
+  function draw() {
+    t += 0.008; // Speed of animation
+
+    var w = canvas.width;
+    var h = canvas.height;
+
+    // Warm cream background
+    ctx.fillStyle = '#fdf8f4';
+    ctx.fillRect(0, 0, w, h);
+
+    // Draw each blob
+    for (var i = 0; i < blobs.length; i++) {
+      var b = blobs[i];
+
+      // Position oscillates
+      var bx = (b.x + Math.sin(t * b.speed + b.phase) * 0.12) * w;
+      var by = (b.y + Math.cos(t * b.speed * 0.8 + b.phase + 1) * 0.1) * h;
+
+      // Radius pulses
+      var br = (b.r + Math.sin(t * 0.5 + b.phase * 2) * 0.03) * Math.min(w, h);
+
+      // Draw soft radial gradient blob
+      var grad = ctx.createRadialGradient(bx, by, 0, bx, by, br);
+      grad.addColorStop(0, b.color);
+      grad.addColorStop(0.6, b.color.replace(/[\d.]+\)$/, '0.15)'));
+      grad.addColorStop(1, b.color.replace(/[\d.]+\)$/, '0)'));
+
+      ctx.beginPath();
+      ctx.arc(bx, by, br, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  draw();
+})();
+
+// ============ FORM LOGIC ============
+var step = 1;
+var labels = ['Getting started', 'Attendance', 'Guest details'];
+var nameEl = document.getElementById('name');
+var gcEl = document.getElementById('gc');
+var gfEl = document.getElementById('gf');
+
+function go(n) {
+  document.querySelectorAll('.step').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById('s' + n).classList.add('active');
+  step = n;
+  document.getElementById('pf').style.width = (n / 3 * 100) + '%';
+  document.getElementById('pl').textContent = labels[n - 1];
+  document.getElementById('ps').textContent = n + ' / 3';
+}
+
+nameEl.addEventListener('input', function() { document.getElementById('n1').disabled = !nameEl.value.trim(); });
+nameEl.addEventListener('keydown', function(e) { if (e.key === 'Enter' && nameEl.value.trim()) go(2); });
+document.getElementById('n1').addEventListener('click', function() { go(2); });
+
+document.querySelectorAll('input[name="att"]').forEach(function(r) {
+  r.addEventListener('change', function() {
+    document.getElementById('n2').disabled = false;
+    document.getElementById('dec').style.display = this.value === 'No' ? 'block' : 'none';
+    document.getElementById('n2').textContent = this.value === 'No' ? 'Submit RSVP' : 'Continue';
+  });
+});
+document.getElementById('n2').addEventListener('click', function() {
+  document.querySelector('input[name="att"]:checked').value === 'No' ? submit() : go(3);
+});
+document.getElementById('b2').addEventListener('click', function() { go(1); });
+document.getElementById('b3').addEventListener('click', function() { go(2); });
+
+gcEl.addEventListener('change', function() {
+  var n = parseInt(this.value);
+  gfEl.innerHTML = '';
+  var cc = document.getElementById('cc');
+  if (!n) { cc.style.display = 'none'; document.getElementById('sub').disabled = true; return; }
+  cc.style.display = 'block';
+  cc.textContent = 'Fill details for ' + n + (n === 1 ? ' person' : ' people');
+
+  for (var i = 1; i <= n; i++) {
+    var d = document.createElement('div');
+    d.className = 'guest';
+    d.id = 'g' + i;
+    d.innerHTML = '<div class="guest-hd"><div class="guest-id"><span class="guest-num">' + i + '</span>' + (i === 1 ? '<span class="guest-tag">You</span>' : '') + '</div><div class="child-sw"><span>Child</span><label class="sw"><input type="checkbox" name="c' + i + '" onchange="childTog(' + i + ')"><span class="rail"></span><span class="dot"></span></label></div></div><input class="gname" name="n' + i + '" placeholder="' + (i === 1 ? 'Your name' : 'Guest name') + '" value="' + (i === 1 ? nameEl.value : '') + '"><div class="pref"><div class="pref-t">Food</div><div class="pref-r"><div class="chip"><input type="radio" id="f' + i + 'a" name="f' + i + '" value="Veg (No Egg)"><label for="f' + i + 'a">Veg (No Egg)</label></div><div class="chip"><input type="radio" id="f' + i + 'b" name="f' + i + '" value="Veg (Egg OK)"><label for="f' + i + 'b">Veg (Egg OK)</label></div><div class="chip"><input type="radio" id="f' + i + 'c" name="f' + i + '" value="Non-Veg (Chicken)"><label for="f' + i + 'c">Non-Veg (Chicken)</label></div></div></div><div class="pref" id="ds' + i + '"><div class="pref-t">Drinks</div><div class="pref-r"><div class="chip drink"><input type="radio" id="d' + i + 'a" name="d' + i + '" value="Non-Alcoholic"><label for="d' + i + 'a">Non-Alcoholic</label></div><div class="chip drink"><input type="radio" id="d' + i + 'b" name="d' + i + '" value="Alcoholic"><label for="d' + i + 'b">Alcoholic</label></div></div></div>';
+    gfEl.appendChild(d);
+  }
+  validate();
+  gfEl.addEventListener('change', validate);
+  gfEl.addEventListener('input', validate);
+});
+
+function childTog(i) {
+  var on = document.querySelector('input[name="c' + i + '"]').checked;
+  var ds = document.getElementById('ds' + i);
+  if (on) { document.getElementById('d' + i + 'a').checked = true; ds.style.display = 'none'; }
+  else { document.querySelectorAll('input[name="d' + i + '"]').forEach(function(r) { r.checked = false; }); ds.style.display = 'block'; }
+  validate();
+}
+
+function validate() {
+  var n = parseInt(gcEl.value) || 0;
+  var ok = n > 0;
+  for (var i = 1; i <= n; i++) {
+    var nm = document.querySelector('input[name="n' + i + '"]');
+    var fd = document.querySelector('input[name="f' + i + '"]:checked');
+    var dr = document.querySelector('input[name="d' + i + '"]:checked');
+    var card = document.getElementById('g' + i);
+    if (!nm || !nm.value.trim() || !fd || !dr) { ok = false; card.classList.remove('done'); }
+    else { card.classList.add('done'); }
+  }
+  document.getElementById('sub').disabled = !ok;
+}
+
+var submitting = false;
+document.getElementById('sub').addEventListener('click', submit);
+
+function submit() {
+  if (submitting) return;
+  submitting = true;
+  var btn = document.getElementById('sub') || document.getElementById('n2');
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+
+  var att = document.querySelector('input[name="att"]:checked').value;
+  var data = { timestamp: new Date().toISOString(), name: nameEl.value.trim(), attending: att, guestCount: gcEl.value || 0, guests: [], totalChildren: 0, totalAdults: 0 };
+
+  if (att === 'Yes') {
+    var n = parseInt(gcEl.value);
+    for (var i = 1; i <= n; i++) {
+      var child = document.querySelector('input[name="c' + i + '"]').checked;
+      child ? data.totalChildren++ : data.totalAdults++;
+      data.guests.push({ name: document.querySelector('input[name="n' + i + '"]').value, food: document.querySelector('input[name="f' + i + '"]:checked').value, drink: document.querySelector('input[name="d' + i + '"]:checked').value, isChild: child });
+    }
+  }
+
+  // POST to Google Apps Script
+  var URL = 'https://script.google.com/macros/s/AKfycbwhc7a4kcbe7fMpbsLDM1XKB2VeITyO5fxGmzaLwcQTLiGfC3QbypalXqdWHBl0WxeV/exec';
+  fetch(URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+    .then(function() {
+      document.getElementById('card').style.display = 'none';
+      document.getElementById('hero').style.display = 'none';
+      document.querySelector('.progress-bar').style.display = 'none';
+      document.getElementById('done').style.display = 'block';
+      if (att === 'No') document.getElementById('dt').textContent = "We'll miss you! Thanks for letting us know.";
+    })
+    .catch(function() {
+      alert('Error. Please try again.');
+      submitting = false;
+      btn.disabled = false;
+      btn.textContent = 'Submit RSVP';
+    });
+}
+</script>
+</body>
+</html>
