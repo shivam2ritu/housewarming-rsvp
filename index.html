@@ -189,7 +189,7 @@ select.input{cursor:pointer;-webkit-appearance:none;appearance:none;background-i
       <div class="ev-row"><span class="ev-icon">&#127860;</span> Dinner and drinks</div>
     </div>
     <div class="cal-btns">
-      <a class="cal-btn" href="data:text/calendar;charset=utf-8,BEGIN%3AVCALENDAR%0AVERSION%3A2.0%0ABEGIN%3AVEVENT%0ADTSTART%3A20260613T170000%0ADTEND%3A20260613T230000%0ASUMMARY%3AShivam%20%26%20Ritu%27s%20Housewarming%0ALOCATION%3A3093%20Harvard%20Garden%2C%20Oakville%0ADESCRIPTION%3ADinner%20and%20drinks.%20See%20you%20there!%0AEND%3AVEVENT%0AEND%3AVCALENDAR" download="housewarming.ics">&#128197; Add to Calendar (iOS)</a>
+      <a class="cal-btn" href="data:text/calendar;charset=utf-8,BEGIN%3AVCALENDAR%0AVERSION%3A2.0%0ABEGIN%3AVEVENT%0ADTSTART%3A20260613T170000%0ADTEND%3A20260613T230000%0ASUMMARY%3AShivam%20%26%20Ritu%27s%20Housewarming%0ALOCATION%3A3093%20Harvard%20Garden%2C%20Oakville%0ADESCRIPTION%3ADinner%20and%20drinks.%20See%20you%20there!%0AEND%3AVEVENT%0AEND%3AVCALENDAR" download="housewarming.ics">&#128197; Add to Calendar</a>
       <a class="cal-btn google" href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Shivam+%26+Ritu%27s+Housewarming&dates=20260613T170000/20260613T230000&location=3093+Harvard+Garden,+Oakville&details=Dinner+and+drinks.+See+you+there!" target="_blank">&#128197; Google Calendar</a>
     </div>
     <p style="margin-top:16px;font-size:12px;color:#94a3b8;">See you soon! &#127881;</p>
@@ -319,7 +319,15 @@ document.querySelectorAll('input[name="att"]').forEach(function(r) {
   });
 });
 document.getElementById('n2').addEventListener('click', function() {
-  document.querySelector('input[name="att"]:checked').value === 'No' ? submit() : go(3);
+  var btn = document.getElementById('n2');
+  var att = document.querySelector('input[name="att"]:checked').value;
+  if (att === 'No') {
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+    submit();
+  } else {
+    go(3);
+  }
 });
 document.getElementById('b2').addEventListener('click', function() { go(1); });
 document.getElementById('b3').addEventListener('click', function() { go(2); });
@@ -395,8 +403,16 @@ function submit() {
       document.getElementById('hero').style.display = 'none';
       document.querySelector('.progress-bar').style.display = 'none';
       document.getElementById('done').style.display = 'block';
-      if (att === 'Yes') launchConfetti();
-      if (att === 'No') document.getElementById('dt').textContent = "We'll miss you! Thanks for letting us know.";
+      if (att === 'Yes') {
+        launchConfetti();
+        document.querySelector('.event-box').style.display = 'block';
+        document.querySelector('.cal-btns').style.display = 'flex';
+      } else {
+        document.getElementById('dt').textContent = "We'll miss you! Thanks for letting us know.";
+        document.querySelector('.event-box').style.display = 'none';
+        document.querySelector('.cal-btns').style.display = 'none';
+        document.querySelector('.success p:last-of-type').textContent = "If anything changes, please reach out to Shivam.";
+      }
     })
     .catch(function() {
       alert('Error. Please try again.');
